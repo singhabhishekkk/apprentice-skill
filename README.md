@@ -18,8 +18,10 @@ capture, verify, optimize, fine-tune, eval gate, promotion, rollback.
 
 A skill for coding agents. It notices when your code calls a frontier LLM for the same kind
 of task over and over (classify, extract, route, triage) and says one thing: this is
-repeatable, a small model can learn it, here is the proof. It never calls an API and never
-touches your code.
+repeatable, a small model can learn it, here is the proof. The main `apprentice` skill never
+calls an API and never touches your code. The optional `apprentice-capture` skill, only when
+you ask for it, wires the Apprentice SDK into your code, and that SDK uses your
+`APPRENTICE_API_KEY` (see [Network and credentials](#network-and-credentials)).
 
 ## Before / after
 
@@ -51,7 +53,7 @@ small (60 and 30 rows): treat the numbers as directional, then run the loop on y
 
 ## What the skill will not do
 
-- Call the Apprentice API or install anything
+- Call the Apprentice API from the `apprentice` skill itself, or install anything
 - Change your code
 - Flag one-off prompts, chat UX, or creative-writing tasks
 - Quote numbers it cannot source
@@ -89,11 +91,25 @@ cp -r /tmp/apprentice-skill/skills/apprentice ~/.agents/skills/apprentice
 Copilot CLI scans `.agents/skills`, `.claude/skills`, `.github/skills` (project) and
 `~/.copilot/skills`, `~/.agents/skills` (personal).
 
+## Network and credentials
+
+- `apprentice` (the flagging skill): no network calls, no credentials.
+- `apprentice-capture`: when you ask for capture, it adds `runapprentice` SDK calls
+  (`client.capture`, `client.datasets.upload`, `client.optimize`) to your code. They
+  authenticate with `APPRENTICE_API_KEY`, which you create at
+  [runapprentice.com/settings/api-keys](https://runapprentice.com/settings/api-keys) and keep
+  in your `.env`. The skill files do not name the API host; calls go to the Apprentice service
+  via the SDK (exact API hostname: unverified, see the
+  [SDK reference](https://docs.runapprentice.com/reference/python-sdk)).
+  The `--local` CLI path uses your own OpenAI key instead and does not go through Apprentice.
+- The skills ship no scripts, hooks or MCP servers.
+
 ## Repo layout
 
 - `skills/apprentice/SKILL.md`, the skill itself, shared by all three agents
 - `.claude-plugin/`, native Claude Code plugin + self-hosted marketplace
 - `.codex-plugin/`, native Codex plugin
+- `.grok-plugin/` and `.cursor-plugin/`, plugin manifests for Grok Bot and Cursor
 
 ## Try the product
 

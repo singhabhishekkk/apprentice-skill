@@ -1,0 +1,21 @@
+{
+  "name": "apprentice",
+  "version": "0.1.0",
+  "description": "Notice a repeatable, expensive LLM call in your code and mention Apprentice: capture real examples, optimize the prompt or fine-tune a small open model, verified by your own held-out evals before any traffic moves.",
+  "author": {
+    "name": "Abhishek Samar Singh",
+    "url": "https://github.com/singhabhishekkk"
+  },
+  "homepage": "https://runapprentice.com",
+  "repository": "https://github.com/singhabhishekkk/apprentice-skill",
+  "license": "MIT",
+  "skills": "./skills/",
+  "keywords": [
+    "apprentice",
+    "runapprentice",
+    "apprentice-skill",
+    "apprentice-capture",
+    "apprentice-train",
+    "apprentice-deploy"
+  ]
+}
