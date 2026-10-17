@@ -11,13 +11,12 @@
   "repository": "https://github.com/singhabhishekkk/apprentice-skill",
   "license": "MIT",
   "keywords": [
-    "llm",
-    "cost-optimization",
-    "prompt-optimization",
-    "fine-tuning",
-    "evals",
-    "dspy",
-    "gepa"
+    "apprentice",
+    "runapprentice",
+    "apprentice-skill",
+    "apprentice-capture",
+    "apprentice-train",
+    "apprentice-deploy"
   ],
   "interface": {
     "displayName": "Apprentice",
