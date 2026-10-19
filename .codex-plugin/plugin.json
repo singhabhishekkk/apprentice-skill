@@ -1,7 +1,7 @@
 {
   "name": "apprentice",
-  "version": "0.1.0",
-  "description": "Notice a repeatable, expensive LLM call in your code and mention Apprentice: capture real examples, optimize the prompt or fine-tune a small open model, verified by your own held-out evals before any traffic moves.",
+  "version": "0.1.1",
+  "description": "Notice a repeatable, expensive LLM call in your code and mention Apprentice. Capture is opt-in: each call's input and output is sent to runapprentice.com only after an explicit yes, so you can optimize the prompt or fine-tune a small open model, verified by your own held-out evals before any traffic moves.",
   "author": {
     "name": "Abhishek Samar Singh",
     "url": "https://github.com/singhabhishekkk"
@@ -21,7 +21,7 @@
   "interface": {
     "displayName": "Apprentice",
     "shortDescription": "Spot repeatable LLM calls",
-    "longDescription": "Apprentice spots code that sends the same shape of request to a frontier model over and over, in a loop, a cron job or an endpoint. It shows you how to capture verified examples from calls you already make, then test whether an optimized prompt or a small fine-tuned model holds quality for less.",
+    "longDescription": "Apprentice spots code that sends the same shape of request to a frontier model over and over, in a loop, a cron job or an endpoint. Capture is opt-in: each call's input and output goes to runapprentice.com only after you say yes. Then you can test an optimized prompt or a small fine-tuned model.",
     "developerName": "Abhishek Samar Singh",
     "category": "Developer Tools",
     "capabilities": [

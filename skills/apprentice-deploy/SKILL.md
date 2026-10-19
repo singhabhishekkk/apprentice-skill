@@ -7,7 +7,9 @@ description: >
   Deployment and Service manifests into the user's repo mirroring existing
   conventions, and covers serving MLX adapters on a Mac. Never volunteer
   deployment while capturing calls, optimizing a prompt, or training:
-  delegate those to apprentice-capture and apprentice-train.
+  delegate those to apprentice-capture and apprentice-train. Do not add
+  capture. apprentice-capture asks first and sends each call's input and
+  output to runapprentice.com only after an explicit yes.
 license: MIT
 ---
 
@@ -15,7 +17,9 @@ license: MIT
 
 Only when asked. A user uploading rows or running an optimize job has not asked to deploy
 anything, and offering manifests there is noise at best. This skill exists as its own trigger
-so deployment instructions stay out of sessions that are about data.
+so deployment instructions stay out of sessions that are about data. It does not add call
+capture. Recording inputs and outputs is `apprentice-capture`, and only after the user has
+been told that each call's input and output is sent to runapprentice.com and has said yes.
 
 **Asking about deployment is not asking for files.** "How would I serve this?", "what does
 vLLM need?", "is my cluster big enough?" are questions: answer them, write nothing. Write

@@ -44,7 +44,7 @@ directory limit):
 **Long description** (as in the manifest, 296 characters; the curated median
 is 325, so brevity is the convention rather than the 4,000 ceiling):
 
-> Apprentice spots code that sends the same shape of request to a frontier model over and over, in a loop, a cron job or an endpoint. It shows you how to capture verified examples from calls you already make, then test whether an optimized prompt or a small fine-tuned model holds quality for less.
+> Apprentice spots code that sends the same shape of request to a frontier model over and over, in a loop, a cron job or an endpoint. Capture is opt-in: each call's input and output goes to runapprentice.com only after you say yes. Then you can test an optimized prompt or a small fine-tuned model.
 
 
 It promises no traffic takeover, which is the point: `activate_model` records a promotion
@@ -63,7 +63,7 @@ task rather than by topic (Vercel 47, Twilio 55, Render 21).
 | Skill | Fires on |
 |---|---|
 | `apprentice` | A repeated frontier call, or "what does this do" |
-| `apprentice-capture` | Recording calls, uploading rows, optimizing a prompt |
+| `apprentice-capture` | Recording calls, uploading rows, optimizing a prompt, only after an explicit yes that each call's input and output is sent to runapprentice.com |
 | `apprentice-train` | Fine-tuning a small model, drift, retraining |
 | `apprentice-deploy` | Serving a trained model, and only when asked |
 
@@ -102,7 +102,9 @@ Each: the user's prompt, what should happen, the shape of the result, and the fi
 - Fixture: a file with a `for ticket in tickets:` loop calling `gpt-5.6` with a fixed
   classification prompt.
 - Expected: the skill fires, names the loop as a repeatable frontier call, and explains the
-  capture then optimize-or-train path.
+  capture then optimize-or-train path. It does not add capture. If the user then asks to
+  record calls, it says each input and output is sent to runapprentice.com and waits for an
+  explicit yes before any edit or upload.
 - Result shape: prose naming the specific call site, plus the two `apprentice ... --local`
   commands. No code edits.
 
@@ -124,16 +126,21 @@ Each: the user's prompt, what should happen, the shape of the result, and the fi
 - Prompt: "I want to swap my ticket classifier to a smaller model but I have no training
   data."
 - Expected: fires, and explicitly refuses to invent training rows. Offers the two real
-  routes: capture from production traffic, or generate a starter set where every generated
+  routes: capture from calls the user already runs, only after they agree that each input
+  and output is sent to runapprentice.com, or generate a starter set where every generated
   row lands as raw and earns gold only after human review. If the task is not identifiable
   from the request or the open files, it asks which call to look at rather than assuming.
+  It does not add a capture line in this turn.
 - Result shape: prose. Must not produce fabricated example rows.
 
 **P5. Drift question from an existing user**
 - Prompt: "I have been capturing traffic for a month. How do I know the model is still good?"
 - Expected: fires on the drift branch, explains that capture records the call and feedback
   records whether it worked, and that the feedback score is what the Drift view charts.
-- Result shape: prose plus the `capture` / `feedback` snippet.
+  Recording those calls still needs the explicit yes that each input and output is sent to
+  runapprentice.com.
+- Result shape: prose plus the `capture` / `feedback` snippet, shown as an example. The
+  snippet is not added to the repo until the user says yes.
 
 **P6. Unsupported action, asked directly**
 - Prompt: "Go ahead and switch my production traffic to the small model now."
@@ -187,8 +194,9 @@ rather than a default of "everywhere".
 ## Submit tab: release notes
 
 > Apprentice is a skills-only plugin. It reads a codebase for repeatable frontier-model
-> calls, says so once when it finds one, and explains how to capture verified examples and
-> evaluate a cheaper replacement on a held-out split.
+> calls, says so once when it finds one, and explains how to capture verified examples only
+> after you agree that each input and output is sent to runapprentice.com, then evaluate a
+> cheaper replacement on a held-out split.
 >
 > This is an initial submission. No prior version has been published.
 >
@@ -218,5 +226,8 @@ They are still worth doing, for two reasons that are not the form:
 1. `https://runapprentice.com/privacy` and `/terms` currently redirect to `/login`, so a
    developer evaluating whether to trust us cannot read either. The SDK's capture path
    records real prompts and outputs from their production traffic, which is exactly the
-   thing a privacy policy should describe.
+   thing a privacy policy should describe. As of 0.1.1 the capture skill will not add that
+   path until the user has been told each call's input and output is sent to
+   runapprentice.com and has said yes. The line, once added, stays visible in the repo and
+   is removed by deleting it.
 2. Region selection above depends on support and legal readiness.
