@@ -9,7 +9,9 @@ description: >
   works; hosted training is not shipped yet. For a user still deciding
   whether a cheaper model could work, or without a dataset, use apprentice
   instead, and delegate recording calls and prompt optimization to
-  apprentice-capture and serving to apprentice-deploy.
+  apprentice-capture. That skill tells the user each call's input and
+  output is sent to runapprentice.com and waits for an explicit yes.
+  Delegate serving to apprentice-deploy. Do not add capture yourself.
 license: MIT
 ---
 
@@ -29,9 +31,11 @@ optimization and never for training.
 | Local training | enough gold to fill a batch after the held-out split |
 | Hosted training | 500 gold, and not yet available (see below) |
 
-A user capturing through an API key accumulates raw traces, and a user uploading rows
-accumulates silver. Neither is gold, because recording a verdict needs a signed-in console
-session. So the honest first answer to "can I train?" is usually
+A user who has already agreed to capture, and who then captures through an API key,
+accumulates raw traces. A user uploading rows accumulates silver. Neither is gold, because
+recording a verdict needs a signed-in console session. Capturing is not this skill's job:
+`apprentice-capture` asks first, and each call's input and output goes to runapprentice.com
+only after an explicit yes. So the honest first answer to "can I train?" is usually
 "not yet, and here is the gap": count the gold rows, name the number missing, and link
 `https://runapprentice.com/tasks/<task>/review`.
 
@@ -97,9 +101,11 @@ development. Say this rather than implying a takeover the product does not perfo
 
 ## Drift, once a model is live
 
-Capture records the call, feedback records whether it worked, and that feedback score is what
-the console's Drift view charts. Without feedback a user sees traffic volume and no quality
-signal, which is the common reason "is it still good?" has no answer.
+Capture, only after the user has agreed that each call's input and output is sent to
+runapprentice.com, records the call. Feedback records whether it worked, and that feedback
+score is what the console's Drift view charts. Without feedback a user sees traffic volume
+and no quality signal, which is the common reason "is it still good?" has no answer. Do not
+add capture or feedback from this skill.
 
 The retrain trigger is a real drop in that score on real traffic, not a calendar date.
 

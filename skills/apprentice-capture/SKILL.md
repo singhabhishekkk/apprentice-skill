@@ -1,41 +1,49 @@
 ---
 name: apprentice-capture
 description: >
-  Use when a user wants real LLM calls recorded into an Apprentice dataset
-  or a prompt optimized: "capture my calls", "record traces", "log these to
-  Apprentice", "optimize this prompt", or after the apprentice skill flagged
-  a repeatable call and the user agreed. Wires the capture line into the
-  code that makes the calls, uploads rows, runs optimize, and returns the
-  console link for verifying rows or sending them to an expert. Delegate
+  Use when a user explicitly asks to record LLM calls into an Apprentice
+  dataset or to optimize a prompt: "capture my calls", "record traces",
+  "log these to Apprentice", "optimize this prompt". Before adding any
+  capture line or upload, tell the user that each call's input and output
+  is sent to runapprentice.com and wait for an explicit yes. Never add
+  capture silently. The line stays visible in the repo and comes out by
+  deleting it. Never capture secrets or personal data (PII). Delegate
   fine-tuning to apprentice-train and serving to apprentice-deploy.
 license: MIT
 ---
 
 # Capture calls and optimize the prompt
 
-Do the job. A plan handed back is not the job.
+Capture is opt-in. Noticing a repeatable call, or the user agreeing that a task looks expensive, is not permission to record it.
 
-## Pick the path. Do not ask which one
+## Say where the data goes, and wait
+
+Before you add a capture line, upload rows, or run anything that sends model inputs and outputs off the machine, tell the user this in plain words:
+
+> Each call's input and output is sent to runapprentice.com and stored on your task there. I will add that only if you say yes.
+
+Wait for an explicit yes. Naming the feature ("capture my calls", "record these") is not that yes. The yes is a reply after you have said that each call's input and output is sent to runapprentice.com. If their request already says that, repeat it in one line, name the file you will change, and treat that request as the yes. Silence, "maybe", or moving on to another task is a no. Do not add the line, do not upload, and do not send the data from a one-off script instead.
+
+Never capture secrets or personal data (PII): API keys, tokens, passwords, session cookies, account or government identifiers, health details, or similar. If the payload may contain any of that, stop and say so before asking for the yes. Redact only if the user asks, and show them what would still be sent.
+
+## Pick the path after they say yes
 
 | What the user said | What to use |
 |---|---|
-| Nothing about accounts, and it is a Python app | **SDK.** Wire capture, hand back the console link |
-| "I don't want to sign in", "keep it local", "no account" | **CLI** `--local`, the user's own OpenAI key |
-| "Just optimize this prompt", and rows already exist | **SDK.** Upload, then run |
-| Already in the console | Send a deep link back to it |
+| Yes, send inputs and outputs, and it is a Python app | **SDK.** Add the capture line in the repo, then hand back the console link |
+| "I don't want to sign in", "keep it local", "no account" | **CLI** `--local`, the user's own OpenAI key. Rows stay on this machine and are not sent to runapprentice.com |
+| "Just optimize this prompt", rows already exist, and they agreed to any upload this step needs | **SDK.** Upload, then run |
+| Already in the console | Send a deep link. Do not add capture |
 
-Ask only when the choice changes what the user gets. Say which path in one line.
+Ask when they have not chosen. That choice decides whether inputs and outputs leave the machine.
 
-The SDK is the default because it returns real values instead of text to parse. The CLI earns
-its place only for the no-account case.
+The SDK is the hosted path because it returns real values instead of text to parse. The CLI is for the no-account case.
 
-Do not mix the two in one piece of work. A session that used the SDK for uploads and the CLI
-for status checks left the user unable to tell which interface had done what.
+Do not mix the two in one piece of work. A session that used the SDK for uploads and the CLI for status checks left the user unable to tell which interface had done what.
 
-## Wire capture in, do not just describe it
+## Add the line in the repo, where they can see it
 
-One line beside the existing model call. It is fail-open by design: it returns `None` rather
-than raising, so a capture outage cannot take down a user's endpoint.
+Only after the yes. One line beside the existing model call, in the file that already makes that call. Then say which file changed, and that deleting that one line removes capture.
 
 ```python
 from runapprentice import Apprentice
@@ -44,17 +52,15 @@ client = Apprentice(api_key=os.environ["APPRENTICE_API_KEY"])
 trace_id = client.capture(task="duplicate-search", input=question, output=answer)
 ```
 
-Then say which file changed and how to remove it. One line to undo is what makes doing it
-safe: a user who dislikes it reverts in seconds, a user who was only offered it has nothing.
+If runapprentice.com cannot be reached, `capture` does not raise. The app keeps running, the model call's own answer is unchanged, and this call is not recorded. The return value is `None`. Say that when you add the line. The point is that a capture problem cannot take the user's endpoint down.
 
-**Never run a real flow from a throwaway script and then delete it.** The dataset stops
-growing the moment that script is gone, and nothing in the repo records it happened. A real
-session did exactly this: eight `/tmp` scripts, zero repo changes, and a dataset frozen at six
-rows because "you had not asked for ongoing capture". True, and useless.
+Leave the line in the repository so it shows up in review and the user can remove it by deleting it. Do not record calls from a throwaway script (under `/tmp` or anywhere else) and then delete the script. Once that file is gone, nothing in the repo shows that inputs and outputs were sent, and the user cannot switch capture off by deleting a line. A real session did this: eight `/tmp` scripts, zero repo changes, and a dataset stuck at six rows with no record of how they were collected. If they only wanted a one-time upload of rows they already have, say that, upload after they agree, and do not leave a recorder behind.
 
 ### Framework-specific capture
 
-- LangChain: `ApprenticeCallback` captures calls and simple retriever context.
+Same rule: name runapprentice.com and the fields that will be sent, and wait for a yes, before adding a callback or wrapper.
+
+- LangChain: `ApprenticeCallback` records calls and simple retriever context and sends them to runapprentice.com.
   [Guide](https://docs.runapprentice.com/how-to/capture-langchain). Use manual `capture(...)`
   when there are several retrievers or custom context formatting.
 - Raw OpenAI clients, Chat Completions and Responses:
@@ -65,23 +71,26 @@ Two API details worth getting right, both from the docs' rules for coding agents
 `client.datasets.upload(...)`, since there is no `ingest()` method, and pass structured
 `inputs={...}` for a multi-field or templated task rather than one rendered prompt string. For
 RAG, `inputs={"question": question, "context": exact_context}`, where the context is exactly
-what the model saw.
+what the model saw. An upload sends those fields to runapprentice.com and needs the same yes as `capture`.
 
 ## Feedback is what makes drift measurable
 
 Capture records the call. Feedback records whether it worked, and that score is what the
-console's Drift view charts and what decides when a retrain is worth doing.
+console's Drift view charts and what decides when a retrain is worth doing. Feedback is sent
+to runapprentice.com as well. Add it only after the same yes.
 
 ```python
-if trace_id:                              # None when capture failed, by design
+if trace_id:                              # None when this call was not recorded; the app still ran
     client.feedback(trace_id, good=True)  # or good=False, or score=0.4
 ```
 
 **Never manufacture it.** Do not add a second LLM call to grade the first, and do not infer
 "looked fine" from confidence or length. A guessed score retrains the model on a lie. With no
-real signal, wire nothing: captured rows still become gold when a human verifies them.
+real signal, add nothing: captured rows still become gold when a human verifies them.
 
 ## Optimize
+
+Run this when the user asks to optimize, using rows already in their account or rows they just agreed to upload.
 
 ```python
 job = client.optimize("duplicate-search").wait()
@@ -99,6 +108,7 @@ apprentice optimize <task> --local --data examples.csv
 Local optimize is scored as JSON extraction only, so every output must be a JSON object or
 array; the CLI refuses other data before spending anything. Note also what the console shows:
 `optimize --local` is never recorded there, so that run stays on the machine that ran it.
+It does not send the rows to runapprentice.com.
 
 ## Hand back the link, every time
 
@@ -130,9 +140,11 @@ model grading its own output is not that.
 
 ## After a run finishes
 
-Read `references/use-optimized-prompt.md` when wiring the optimized prompt into the user's
-code. The artifact is not a template and `.format()` on it fails silently in a way that ships
-a prompt which never sees the user's data.
+Read `references/use-optimized-prompt.md` when the user asks to put the optimized prompt in
+their code. That edit stays on the machine: it renders a prompt locally and does not send
+inputs or outputs anywhere. Do not add a capture line in the same edit unless they already
+gave the yes above. The artifact is not a template. `.format()` on it raises `KeyError`, and
+a string replace can drop the input so the prompt ships without the user's data.
 
 ## Sandbox
 
@@ -140,4 +152,4 @@ a prompt which never sees the user's data.
 left the machine. A bare connection error is weaker evidence and has other causes (DNS, TLS, a
 proxy, a firewall, an outage), so name the sandbox as one possibility rather than the answer.
 Claude Code and Codex sandboxes deny network by default; tell the user what to enable rather
-than retrying or working around it.
+than retrying or working around it. Do not bypass the sandbox to send inputs and outputs out.

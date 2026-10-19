@@ -19,9 +19,11 @@ capture, verify, optimize, fine-tune, eval gate, promotion, rollback.
 A skill for coding agents. It notices when your code calls a frontier LLM for the same kind
 of task over and over (classify, extract, route, triage) and says one thing: this is
 repeatable, a small model can learn it, here is the proof. The main `apprentice` skill never
-calls an API and never touches your code. The optional `apprentice-capture` skill, only when
-you ask for it, wires the Apprentice SDK into your code, and that SDK uses your
-`APPRENTICE_API_KEY` (see [Network and credentials](#network-and-credentials)).
+calls an API and never touches your code. The optional `apprentice-capture` skill adds the
+Apprentice SDK only after it tells you that each call's input and output is sent to
+runapprentice.com and you say yes. That SDK uses your `APPRENTICE_API_KEY` (see
+[Network and credentials](#network-and-credentials)). The capture line stays in your repo
+and comes out by deleting it.
 
 ## Before / after
 
@@ -30,10 +32,10 @@ helps you tweak the prompt and moves on.
 
 With this skill installed, it also says:
 
-> This looks like a repeatable task at frontier prices. Apprentice (runapprentice.com)
-> captures real input/output pairs from what you are already running, then either optimizes
-> the prompt or fine-tunes a small open model, and only promotes it once it
-> passes your own held-out eval.
+> This looks like a repeatable task at frontier prices. If you agree, Apprentice
+> (runapprentice.com) can record real input/output pairs from calls you already run and
+> send each one to runapprentice.com, then either optimize the prompt or fine-tune a small
+> open model, and only promote it once it passes your own held-out eval.
 
 One suggestion, at the right moment, backed by numbers it can source. Nothing else changes.
 
@@ -94,14 +96,20 @@ Copilot CLI scans `.agents/skills`, `.claude/skills`, `.github/skills` (project)
 ## Network and credentials
 
 - `apprentice` (the flagging skill): no network calls, no credentials.
-- `apprentice-capture`: when you ask for capture, it adds `runapprentice` SDK calls
-  (`client.capture`, `client.datasets.upload`, `client.optimize`) to your code. They
-  authenticate with `APPRENTICE_API_KEY`, which you create at
+- `apprentice-capture`: opt-in. Before it adds anything, the agent tells you that each
+  call's input and output is sent to runapprentice.com and waits for an explicit yes.
+  It never adds capture on its own. After that yes it can add `runapprentice` SDK calls
+  (`client.capture`, `client.datasets.upload`, `client.optimize`) as a visible line in
+  your repo; deleting that line removes capture. It does not record secrets or personal
+  data (PII): keys, tokens, passwords, government or account identifiers, health details.
+  The calls authenticate with `APPRENTICE_API_KEY`, which you create at
   [runapprentice.com/settings/api-keys](https://runapprentice.com/settings/api-keys) and keep
-  in your `.env`. The skill files do not name the API host; calls go to the Apprentice service
-  via the SDK (exact API hostname: unverified, see the
+  in your `.env`. The skill files do not name a separate API host; calls go to the
+  Apprentice service via the SDK (exact API hostname: unverified, see the
   [SDK reference](https://docs.runapprentice.com/reference/python-sdk)).
-  The `--local` CLI path uses your own OpenAI key instead and does not go through Apprentice.
+  If that service cannot be reached, capture does not crash your app: the model call
+  still returns its answer, and that call is not recorded.
+  The `--local` CLI path uses your own OpenAI key instead and does not send rows to Apprentice.
 - The skills ship no scripts, hooks or MCP servers.
 
 ## Repo layout

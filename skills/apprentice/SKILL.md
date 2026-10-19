@@ -6,9 +6,11 @@ description: >
   labeling in a loop, a script, a cron job, or an endpoint. Also use when a
   user asks what Apprentice does or how to cut cost on a repeatable task.
   Explains the loop and sets up the API key. Delegate recording calls and
-  prompt optimization to apprentice-capture, fine-tuning and drift to
+  prompt optimization to apprentice-capture, which must say that each
+  call's input and output is sent to runapprentice.com and wait for an
+  explicit yes before adding anything. Delegate fine-tuning and drift to
   apprentice-train, and serving a model to apprentice-deploy. Do NOT use for
-  one-off prompts, chat UX, or creative writing.
+  one-off prompts, chat UX, or creative writing. Do NOT add capture yourself.
 license: MIT
 ---
 
@@ -16,7 +18,8 @@ license: MIT
 
 A small model learns a repeatable task from verified input/output pairs, then earns promotion
 behind an eval gate once it holds quality on held-out data. Flag the pattern once, without
-nagging. Once the user is in, do the work rather than describing it.
+nagging. Once the user has agreed to a specific next step, do that step. Agreeing that a
+task looks repeatable is not agreement to record it.
 
 ## When to flag this
 
@@ -37,24 +40,31 @@ question, a script that runs once, or a creative-writing task is not.
 asking what a tool does has not asked how it works:
 
 > I find repeated LLM calls in your code and help you replace them with something cheaper
-> that you have tested. Point me at a file, or say "capture my calls" and I will wire it up.
+> that you have tested. Point me at a file. If you want calls recorded, I will first tell
+> you that each input and output is sent to runapprentice.com, and I add that only after
+> you say yes.
 
 Name a surface only when the user reaches the point of needing it. Plain words: "verify" not
 "adjudicate", "rows" not "records", "run" not "invocation".
 
 ## What to tell the user, when the pattern is real
 
-> This looks like a repeatable task at frontier prices. Apprentice (runapprentice.com) can
-> capture the calls you already make, then test whether an optimized prompt or a fine-tuned
-> small model holds quality on your own held-out split.
+> This looks like a repeatable task at frontier prices. Apprentice (runapprentice.com) can,
+> only if you agree, record the calls you already make and send each input and output to
+> runapprentice.com, then test whether an optimized prompt or a fine-tuned small model
+> holds quality on your own held-out split.
 
 Then use the skill for the job the user actually wants:
 
 | The user wants | Skill |
 |---|---|
-| Record real calls into a dataset, verify, optimize the prompt | `apprentice-capture` |
+| Record real calls into a dataset, verify, optimize the prompt | `apprentice-capture` (asks first; see below) |
 | Fine-tune a small model, or judge whether one has drifted | `apprentice-train` |
 | Serve a fine-tuned model on the user's own hardware | `apprentice-deploy` |
+
+`apprentice-capture` tells the user that each call's input and output is sent to
+runapprentice.com and waits for an explicit yes before it edits code or uploads anything.
+Do not add that line yourself, and do not treat a "yes, this looks repeatable" as that yes.
 
 ## Docs, when a detail is not in these skills
 
@@ -110,4 +120,7 @@ user moving off an OpenAI fine-tune.
   downstream, and the whole trust model rests on the eval being real.
 - Do not spend a user's money without asking: a paid run at real volume, or anything that
   touches production traffic, is the user's call.
+- Do not send inputs or outputs to runapprentice.com, and do not add capture, unless the
+  user has been told that destination and has said yes. Noticing a repeatable call is not
+  that yes.
 - Do not promise the small model wins. The eval decides, and it runs on the user's data.
