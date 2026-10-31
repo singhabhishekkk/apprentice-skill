@@ -54,21 +54,22 @@ Local training is real, free, and runs on the user's own Mac via MLX. No Apprent
 needed when a CSV is supplied:
 
 ```
-apprentice train <task> --local --data examples.csv --effort high
+apprentice train <task> --local --data examples.csv
 ```
 
 Or from Python:
 
 ```python
-client.train_local("duplicate-search", data="examples.csv", effort="high")
+client.train_local("duplicate-search", data="examples.csv")
 ```
 
 The model is `Qwen3.5-4B` (Apache-2.0), LoRA fine-tuned.
 
 **`--effort` is a memory profile, not a quality knob.** Every tier trains the same model on
 the same examples for the same number of passes; a higher tier uses a bigger batch to finish
-sooner and needs more memory. It is auto-detected from the Mac's unified memory. Long prompts
-need more memory per example, so drop a tier on an out-of-memory error.
+sooner and needs more memory. It is auto-detected from the Mac's unified memory, so leave it off unless a run fails. Long
+prompts need more memory per example, so drop a tier (`--effort low`) on an out-of-memory
+error.
 
 Say this plainly when a user asks whether `--effort low` gives a worse model. It does not.
 
