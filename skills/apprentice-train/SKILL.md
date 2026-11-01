@@ -83,7 +83,7 @@ Needs `runapprentice` 0.4.4 or later.
    from the status, plus `request_note`. When it is `failed` or `stopped`, quote `message`.
 
 Errors on stderr carry `code`, `retryable` and sometimes `remediation`. Exit code 4 with
-`code: "busy"` means another training run is using this Mac: report which task holds it
+`code: "busy"` means another training run from this user account is using the GPU: report which task holds it
 and wait; do not start a second run. Running `--detach` again for the same task returns
 the run already in progress.
 
