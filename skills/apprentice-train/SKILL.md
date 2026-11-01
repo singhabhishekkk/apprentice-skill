@@ -65,6 +65,28 @@ client.train_local("duplicate-search", data="examples.csv")
 
 The model is `Qwen3.5-4B` (Apache-2.0), LoRA fine-tuned.
 
+### Running it as an agent
+
+A run can take an hour, longer than your command timeout. Never run it in the foreground.
+Needs `runapprentice` 0.4.4 or later.
+
+1. Start it detached. It returns as soon as the run has started:
+   ```
+   apprentice train <task> --local --data examples.csv --detach --json
+   ```
+2. Give the user the watch command from the reply (`watch_command`), so they can see it live:
+   `apprentice logs --follow <task>`. It shows a live bar in a terminal, plain lines at each
+   10% when piped or run by an agent, and JSON with `--json`. Stopping it does not stop training.
+3. Poll every few minutes with `apprentice local-status --json <task>` and tell the user in
+   one plain line: "Training is 49% done, about 27 minutes left."
+4. When `state` is `completed`, give the user the score, `adapter_path` and `serve_command`
+   from the status, plus `request_note`. When it is `failed` or `stopped`, quote `message`.
+
+Errors on stderr carry `code`, `retryable` and sometimes `remediation`. Exit code 4 with
+`code: "busy"` means another training run is using this Mac: report which task holds it
+and wait; do not start a second run. Running `--detach` again for the same task returns
+the run already in progress.
+
 **`--effort` is a memory profile, not a quality knob.** Every tier trains the same model on
 the same examples for the same number of passes; a higher tier uses a bigger batch to finish
 sooner and needs more memory. It is auto-detected from the Mac's unified memory, so leave it off unless a run fails. Long

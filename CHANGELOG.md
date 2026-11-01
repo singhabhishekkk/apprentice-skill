@@ -2,6 +2,7 @@
 
 ## 0.1.2
 - `apprentice-deploy` serves a Mac-trained model the way it was trained: the full `mlx_lm.server` command with `enable_thinking` off, the adapter folder, and a test request before any code changes. It also says the two edits a switch needs: model name `"default_model"`, because the server applies the adapter only under that name, and the row's input as one user message with no system prompt.
+- `apprentice-train` runs local training the way an agent should: detached, with the user's live watch command, status polling, and the coded errors (needs `runapprentice` 0.4.4).
 - `apprentice-train` leaves `--effort` off by default, since it is auto-detected from memory, and names `--effort low` as the fix for an out-of-memory error.
 
 ## 0.1.1
