@@ -55,6 +55,10 @@ mlx_lm.server \
   --port 8080
 ```
 
+Check `python -c "import mlx_lm; print(mlx_lm.__version__)"` first. Serving needs mlx-lm
+0.32.2 or later: 0.31.3 ignores `--adapter-path` and serves the base model with no error.
+Upgrade with `pip install -U "runapprentice[local]>=0.4.4"`.
+
 Three things decide whether the user gets the model they trained. Get all three right:
 
 - **`--chat-template-args '{"enable_thinking": false}'`.** Qwen3.5 reasons in free text by
@@ -74,8 +78,9 @@ curl http://127.0.0.1:8080/v1/chat/completions -H "Content-Type: application/jso
   -d '{"model": "default_model", "messages": [{"role": "user", "content": "<one input from the CSV>"}]}'
 ```
 
-The reply should look like the CSV's `output` column. Rollback is the base URL and model
-name flipped back.
+The reply should look like the CSV's `output` column. Rollback restores the base URL, the
+model name, and the original messages including any system prompt, so keep the original
+message construction behind the same switch.
 
 Do not claim an MLX adapter can be served by vLLM elsewhere. That conversion path has no
 published, verified recipe, and saying otherwise sends a user down a road that dead-ends.
