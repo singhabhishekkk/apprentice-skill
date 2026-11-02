@@ -54,21 +54,60 @@ Local training is real, free, and runs on the user's own Mac via MLX. No Apprent
 needed when a CSV is supplied:
 
 ```
-apprentice train <task> --local --data examples.csv --effort high
+apprentice train <task> --local --data examples.csv
 ```
 
 Or from Python:
 
 ```python
-client.train_local("duplicate-search", data="examples.csv", effort="high")
+client.train_local("duplicate-search", data="examples.csv")
 ```
 
 The model is `Qwen3.5-4B` (Apache-2.0), LoRA fine-tuned.
 
-**`--effort` is a memory profile, not a quality knob.** Every tier trains the same model on
-the same examples for the same number of passes; a higher tier uses a bigger batch to finish
-sooner and needs more memory. It is auto-detected from the Mac's unified memory. Long prompts
-need more memory per example, so drop a tier on an out-of-memory error.
+### Running it as an agent
+
+A run can take an hour, longer than your command timeout. Never run it in the foreground.
+Needs `runapprentice` 0.4.4 or later.
+
+1. **Ask the user how much memory training may use, before you start.** Their Mac is
+   theirs, so they choose; do not pick silently. Show them this, in these words:
+
+   > Training can use a little or a lot of your Mac's memory. All three choices make the
+   > same model with the same quality.
+   > - **Low**: uses the least memory, so other apps stay usable. Best for Macs under 64 GB.
+   > - **Medium**: uses more memory. For Macs with 64 GB or more.
+   > - **High**: uses the most memory. For Macs with 96 GB or more.
+   > - **Auto** (default): picks for this Mac's memory.
+   >
+   > Any choice keeps the GPU busy, so games and video editing will be slower while it runs.
+
+   If they say auto, or do not mind, leave `--effort` off. Otherwise pass
+   `--effort low|medium|high`.
+2. Start it detached. It returns as soon as the run has started:
+   ```
+   apprentice train <task> --local --data examples.csv --detach --json
+   ```
+3. Give the user the watch command from the reply (`watch_command`), so they can see it live:
+   `apprentice logs --follow <task>`. It shows a live bar in a terminal, plain lines at each
+   10% when piped or run by an agent, and JSON with `--json`. Stopping it does not stop training.
+   When the reply has `console_url` (an API key is set), give that link too: the run's own
+   page in the console, live, with progress, loss, memory and speed.
+4. Poll every few minutes with `apprentice local-status --json <task>` and tell the user in
+   one plain line: "Training is 49% done, about 27 minutes left."
+5. When `state` is `completed`, give the user the score, `adapter_path` and `serve_command`
+   from the status, plus `request_note`. When it is `failed` or `stopped`, quote `message`.
+
+Errors on stderr carry `code`, `retryable` and sometimes `remediation`. Exit code 4 with
+`code: "busy"` means another training run from this user account is using the GPU: report which task holds it
+and wait; do not start a second run. Running `--detach` again for the same task returns
+the run already in progress.
+
+**`--effort` sets memory use, not quality and not CPU or GPU use.** Every tier trains the
+same model on the same examples for the same number of passes; a higher tier uses a bigger
+batch and needs more memory. Do not promise a higher tier is faster: that is not measured.
+Long prompts need more memory per example, so on an out-of-memory error (`code:
+"out_of_memory"`) offer the user a lower tier and run again.
 
 Say this plainly when a user asks whether `--effort low` gives a worse model. It does not.
 

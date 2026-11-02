@@ -44,7 +44,43 @@ for one rather than guessing.
 ## On a Mac
 
 Mac-trained MLX adapters are served on the Mac with `mlx_lm.server`
-([docs](https://docs.runapprentice.com/how-to/deploy-mlx)).
+([docs](https://docs.runapprentice.com/how-to/deploy-mlx)). The adapter is in
+`~/.apprentice/local-runs/<task>/adapter`; each new run on a task replaces it.
+
+```bash
+mlx_lm.server \
+  --model mlx-community/Qwen3.5-4B-OptiQ-4bit \
+  --adapter-path ~/.apprentice/local-runs/<task>/adapter \
+  --chat-template-args '{"enable_thinking": false}' \
+  --port 8080
+```
+
+Check `python -c "import mlx_lm; print(mlx_lm.__version__)"` first. Serving needs mlx-lm
+0.32.2 or later: 0.31.3 ignores `--adapter-path` and serves the base model with no error.
+Upgrade with `pip install -U "runapprentice[local]>=0.4.4"`.
+
+Three things decide whether the user gets the model they trained. Get all three right:
+
+- **`--chat-template-args '{"enable_thinking": false}'`.** Qwen3.5 reasons in free text by
+  default. Training and the held-out score ran with it off; without the flag, replies open
+  with reasoning instead of the JSON answer.
+- **Model name `"default_model"` in every request.** `mlx_lm.server` applies the adapter
+  only under that name. Any other name loads that name instead: the base model without the
+  fine-tune, or a failed download for a frontier id like `gpt-5.4-mini`. So swapping only
+  `OPENAI_BASE_URL` is not enough; change the model name in the same edit.
+- **The row's input as one user message, no system prompt.** That is the exact format it
+  trained and was scored on. Remove the frontier prompt from this call path.
+
+Send one test request and show the user the reply before touching their code:
+
+```bash
+curl http://127.0.0.1:8080/v1/chat/completions -H "Content-Type: application/json" \
+  -d '{"model": "default_model", "messages": [{"role": "user", "content": "<one input from the CSV>"}]}'
+```
+
+The reply should look like the CSV's `output` column. Rollback restores the base URL, the
+model name, and the original messages including any system prompt, so keep the original
+message construction behind the same switch.
 
 Do not claim an MLX adapter can be served by vLLM elsewhere. That conversion path has no
 published, verified recipe, and saying otherwise sends a user down a road that dead-ends.
