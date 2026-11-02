@@ -91,6 +91,8 @@ Needs `runapprentice` 0.4.4 or later.
 3. Give the user the watch command from the reply (`watch_command`), so they can see it live:
    `apprentice logs --follow <task>`. It shows a live bar in a terminal, plain lines at each
    10% when piped or run by an agent, and JSON with `--json`. Stopping it does not stop training.
+   When the reply has `console_url` (an API key is set), give that link too: the run's own
+   page in the console, live, with progress, loss, memory and speed.
 4. Poll every few minutes with `apprentice local-status --json <task>` and tell the user in
    one plain line: "Training is 49% done, about 27 minutes left."
 5. When `state` is `completed`, give the user the score, `adapter_path` and `serve_command`
