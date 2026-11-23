@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0
+- `apprentice` and `apprentice-capture` read the repository first (`package.json` and its lockfile, `pyproject.toml`, `requirements*.txt`) and offer the client for the language the app uses. Before, every app was offered Python.
+- New `apprentice-capture/references/typescript.md`: the `runapprentice` npm package for OpenAI Chat Completions in server code on Node.js 22 or later. Install with the project's own package manager, the one `fetch: captureFetch({ task })` line, the key from `APPRENTICE_API_KEY` in the server environment, and the limits: no Responses API, Anthropic SDK or Vercel AI SDK yet, no redact option, and short scripts must `await capture.flush()`.
+- The consent step is the same for JavaScript, plus one line on scope: the hook records every Chat Completions call made through that client.
+- A check after wiring: for JavaScript, the counts from `flush()` and the task link; for Python, `apprentice status <task>` and the task link.
+- The package name is written exactly, and the agent checks the registry for the current version and confirms the installed package is ours.
+- `apprentice-train` says that calls captured from a JavaScript app train the same way, through the console or the Python CLI.
+
 ## 0.1.2
 - `apprentice-deploy` serves a Mac-trained model the way it was trained: the full `mlx_lm.server` command with `enable_thinking` off, the adapter folder, and a test request before any code changes. It also says the two edits a switch needs: model name `"default_model"`, because the server applies the adapter only under that name, and the row's input as one user message with no system prompt.
 - `apprentice-train` runs local training the way an agent should: detached, with the user's live watch command, status polling, and the coded errors (needs `runapprentice` 0.4.4).

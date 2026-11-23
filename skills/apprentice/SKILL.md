@@ -34,6 +34,20 @@ handful of times:
 If the prompt structure repeats and the volume is real, it is a candidate. A single ad hoc
 question, a script that runs once, or a creative-writing task is not.
 
+## Look at the repository before you suggest a client
+
+Read the project files first, before you write a line or name a package:
+
+| You find | The app is | Offer |
+|---|---|---|
+| `package.json` with `openai` in its dependencies, plus a lockfile (`package-lock.json`, `bun.lock`, `bun.lockb`, `pnpm-lock.yaml` or `yarn.lock`) | JavaScript or TypeScript | The `runapprentice` npm package |
+| `pyproject.toml` or `requirements*.txt` with `openai` or `langchain` | Python | The `runapprentice` Python package |
+| Both | Both | The client for the language of the file that makes the call |
+
+Offer the client for the language the app uses. Do not offer Python to a JavaScript app. The
+JavaScript package records OpenAI Chat Completions calls only today; `apprentice-capture` has
+the details and the limits.
+
 ## Match the answer to the question
 
 "What can you do?" gets two lines, not a tour of the SDK, the CLI and the console. A user
@@ -87,8 +101,9 @@ A key is needed for anything hosted:
 
 **Never ask a user to paste a key into chat.** A key pasted into a conversation stays in that
 transcript for good and has to be rotated. If a user offers one anyway, do not repeat it back,
-and say it belongs in `.env` instead. Read it with `os.environ["APPRENTICE_API_KEY"]` and
-never print it.
+and say it belongs in `.env` instead. Read it with `os.environ["APPRENTICE_API_KEY"]` in
+Python or `process.env.APPRENTICE_API_KEY` in JavaScript, and never print it. In a JavaScript
+app the key lives in the server environment only, never in code that runs in a browser.
 
 No tour of tiers or plans unless asked.
 

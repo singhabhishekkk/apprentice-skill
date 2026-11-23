@@ -25,6 +25,11 @@ runapprentice.com and you say yes. That SDK uses your `APPRENTICE_API_KEY` (see
 [Network and credentials](#network-and-credentials)). The capture line stays in your repo
 and comes out by deleting it.
 
+It works in Python and in JavaScript or TypeScript. The skill reads your `package.json` or
+`pyproject.toml` first and offers the client for the language your app uses. In JavaScript
+it records OpenAI Chat Completions calls in server code, through the `runapprentice` npm
+package.
+
 ## Before / after
 
 You paste a batch job that pipes every support ticket through a frontier model. The agent
@@ -100,7 +105,9 @@ Copilot CLI scans `.agents/skills`, `.claude/skills`, `.github/skills` (project)
   call's input and output is sent to runapprentice.com and waits for an explicit yes.
   It never adds capture on its own. After that yes it can add `runapprentice` SDK calls
   (`client.capture`, `client.datasets.upload`, `client.optimize`) as a visible line in
-  your repo; deleting that line removes capture. It does not record secrets or personal
+  your repo; deleting that line removes capture. In a JavaScript app the line is
+  `fetch: captureFetch({ task })` on your OpenAI client, which records every Chat
+  Completions call made through that client. It does not record secrets or personal
   data (PII): keys, tokens, passwords, government or account identifiers, health details.
   The calls authenticate with `APPRENTICE_API_KEY`, which you create at
   [runapprentice.com/settings/api-keys](https://runapprentice.com/settings/api-keys) and keep
@@ -124,7 +131,8 @@ Copilot CLI scans `.agents/skills`, `.claude/skills`, `.github/skills` (project)
 The skill only points; the loop itself runs at [runapprentice.com](https://runapprentice.com).
 
 ```bash
-pip install runapprentice
+pip install runapprentice   # Python
+npm install runapprentice   # JavaScript or TypeScript
 ```
 
 Moving off OpenAI fine-tuning? There is a

@@ -39,6 +39,10 @@ only after an explicit yes. So the honest first answer to "can I train?" is usua
 "not yet, and here is the gap": count the gold rows, name the number missing, and link
 `https://runapprentice.com/tasks/<task>/review`.
 
+Calls captured from a JavaScript or TypeScript app land as raw rows too, and train the same
+way once verified: through the console or the Python CLI below. There is no JavaScript
+training command.
+
 Do not auto-approve rows to reach 500. Gold means a human checked it. A model grading its own
 output is not verification, and every eval downstream inherits the lie.
 
