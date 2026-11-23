@@ -3,7 +3,8 @@ name: apprentice-capture
 description: >
   Use when a user explicitly asks to record LLM calls into an Apprentice
   dataset or to optimize a prompt: "capture my calls", "record traces",
-  "log these to Apprentice", "optimize this prompt". Before adding any
+  "log these to Apprentice", "optimize this prompt". Covers Python apps and
+  JavaScript or TypeScript apps that use the OpenAI client. Before adding any
   capture line or upload, tell the user that each call's input and output
   is sent to runapprentice.com and wait for an explicit yes. Never add
   capture silently. The line stays visible in the repo and comes out by
@@ -15,6 +16,15 @@ license: MIT
 # Capture calls and optimize the prompt
 
 Capture is opt-in. Noticing a repeatable call, or the user agreeing that a task looks expensive, is not permission to record it.
+
+## Look at the repository first
+
+Before you write a line, find the language of the file that makes the model call:
+
+- `package.json` with `openai` in its dependencies, plus a lockfile (`package-lock.json`, `bun.lock`, `bun.lockb`, `pnpm-lock.yaml`, `yarn.lock`): a JavaScript or TypeScript app. Read `references/typescript.md` before you go on. It has the line, the limits, and the checks.
+- `pyproject.toml` or `requirements*.txt`: a Python app. The rest of this file covers it.
+
+Offer the client for that language. If the JavaScript app uses something the JavaScript package does not record yet (the Responses API, the Anthropic SDK, the Vercel AI SDK), say so plainly and do not add anything.
 
 ## Say where the data goes, and wait
 
@@ -31,6 +41,7 @@ Never capture secrets or personal data (PII): API keys, tokens, passwords, sessi
 | What the user said | What to use |
 |---|---|
 | Yes, send inputs and outputs, and it is a Python app | **SDK.** Add the capture line in the repo, then hand back the console link |
+| Yes, send inputs and outputs, and it is a JavaScript or TypeScript app | **npm package.** Follow `references/typescript.md`, then hand back the console link |
 | "I don't want to sign in", "keep it local", "no account" | **CLI** `--local`, the user's own OpenAI key. Rows stay on this machine and are not sent to runapprentice.com |
 | "Just optimize this prompt", rows already exist, and they agreed to any upload this step needs | **SDK.** Upload, then run |
 | Already in the console | Send a deep link. Do not add capture |
@@ -40,6 +51,14 @@ Ask when they have not chosen. That choice decides whether inputs and outputs le
 The SDK is the hosted path because it returns real values instead of text to parse. The CLI is for the no-account case.
 
 Do not mix the two in one piece of work. A session that used the SDK for uploads and the CLI for status checks left the user unable to tell which interface had done what.
+
+## Install the right package
+
+The package is `runapprentice`, in both languages. Write that name exactly and never guess another one: `apprentice` on PyPI and on npm belongs to another party and has nothing to do with this product.
+
+Check the current version first. Read it from the registry, not from a number in these skills: `pip index versions runapprentice` or `https://pypi.org/project/runapprentice/` for Python, `npm view runapprentice version` for JavaScript.
+
+Install with the project's own tool (`pip install runapprentice`, `uv add runapprentice` or `poetry add runapprentice` for Python; the JavaScript commands are in `references/typescript.md`). Then confirm the installed package is ours: `pip show runapprentice` lists `Author: Abhishek Singh` and the home page `https://runapprentice.com`. If it shows anything else, stop and tell the user.
 
 ## Add the line in the repo, where they can see it
 
@@ -56,6 +75,10 @@ If runapprentice.com cannot be reached, `capture` does not raise. The app keeps 
 
 Leave the line in the repository so it shows up in review and the user can remove it by deleting it. Do not record calls from a throwaway script (under `/tmp` or anywhere else) and then delete the script. Once that file is gone, nothing in the repo shows that inputs and outputs were sent, and the user cannot switch capture off by deleting a line. A real session did this: eight `/tmp` scripts, zero repo changes, and a dataset stuck at six rows with no record of how they were collected. If they only wanted a one-time upload of rows they already have, say that, upload after they agree, and do not leave a recorder behind.
 
+### Check that a call was recorded
+
+Do not stop at adding the line. Run the code path that makes the call once, with the user's OK if it spends money or touches production. In a short script, call `client.flush_captures()` before it exits, since capture sends in the background by default. Then run `apprentice status <task>`: the `raw=` count goes up by one for each recorded call. If `apprentice --help` lists a `doctor` command, run `apprentice doctor <task>` first; it checks the key and the connection without changing anything. Give the user the link `https://runapprentice.com/tasks/<task>/dataset`, where the call now shows as a raw row.
+
 ### Framework-specific capture
 
 Same rule: name runapprentice.com and the fields that will be sent, and wait for a yes, before adding a callback or wrapper.
@@ -63,8 +86,9 @@ Same rule: name runapprentice.com and the fields that will be sent, and wait for
 - LangChain: `ApprenticeCallback` records calls and simple retriever context and sends them to runapprentice.com.
   [Guide](https://docs.runapprentice.com/how-to/capture-langchain). Use manual `capture(...)`
   when there are several retrievers or custom context formatting.
-- Raw OpenAI clients, Chat Completions and Responses:
+- Raw OpenAI clients in Python, Chat Completions and Responses:
   [guide](https://docs.runapprentice.com/how-to/capture-openai).
+- The OpenAI client in JavaScript or TypeScript, Chat Completions only: `references/typescript.md`.
 - Full method list: [Python SDK reference](https://docs.runapprentice.com/reference/python-sdk).
 
 Two API details worth getting right, both from the docs' rules for coding agents: upload with
